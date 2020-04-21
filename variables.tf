@@ -1,3 +1,7 @@
+variable "autoscaler_enabled" {
+  default = "false"
+}
+
 variable "cluster_name" {}
 variable "desired_nodes" {}
 variable "extra_tags" {

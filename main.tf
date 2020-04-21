@@ -59,7 +59,7 @@ resource "aws_autoscaling_group" "node" {
   tag {
     key                 = "k8s.io/cluster-autoscaler/enabled"
     propagate_at_launch = true
-    value               = "true"
+    value               = var.autoscaler_enabled
   }
 
   dynamic "tag" {
