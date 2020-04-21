@@ -50,6 +50,18 @@ resource "aws_autoscaling_group" "node" {
     value               = "owned"
   }
 
+  tag {
+    key                 = "k8s.io/cluster-autoscaler/${var.cluster_name}"
+    propagate_at_launch = false
+    value               = "owned"
+  }
+
+  tag {
+    key                 = "k8s.io/cluster-autoscaler/enabled"
+    propagate_at_launch = false
+    value               = "true"
+  }
+
   dynamic "tag" {
     for_each = var.extra_tags
     content {
