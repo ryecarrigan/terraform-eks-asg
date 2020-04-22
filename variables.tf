@@ -3,7 +3,7 @@ variable "autoscaler_enabled" {
 }
 
 variable "cluster_name" {}
-variable "desired_nodes" {}
+variable "desired_nodes_per_az" {}
 variable "extra_tags" {
   default = {}
   type    = "map"
@@ -18,11 +18,11 @@ variable "key_name" {
   default = ""
 }
 
-variable "maximum_nodes" {
+variable "maximum_nodes_per_az" {
   default = 8
 }
 
-variable "minimum_nodes" {
+variable "minimum_nodes_per_az" {
   default = 0
 }
 
@@ -31,7 +31,10 @@ variable "security_group_ids" {
   type = "list"
 }
 
-variable "subnet_ids" {}
+variable "subnet_ids" {
+  type = "list"
+}
+
 variable "user_data" {
   default = ""
 }

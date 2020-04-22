@@ -30,13 +30,16 @@ resource "aws_launch_configuration" "node" {
 }
 
 resource "aws_autoscaling_group" "node" {
-  desired_capacity        = var.desired_nodes
+  count = length(var.subnet_ids)
+
+  availability_zones      = [data.aws_subnet.subnet[count.index].availability_zone]
+  desired_capacity        = var.desired_nodes_per_az
   launch_configuration    = aws_launch_configuration.node.id
-  max_size                = var.maximum_nodes
-  min_size                = var.minimum_nodes
+  max_size                = var.maximum_nodes_per_az
+  min_size                = var.minimum_nodes_per_az
   name_prefix             = var.node_name_prefix
   service_linked_role_arn = data.aws_iam_role.autoscaling.arn
-  vpc_zone_identifier     = var.subnet_ids
+  vpc_zone_identifier     = [data.aws_subnet.subnet[count.index].id]
 
   tag {
     key                 = "Name"
@@ -69,6 +72,10 @@ resource "aws_autoscaling_group" "node" {
       propagate_at_launch = true
       value               = tag.value
     }
+  }
+
+  lifecycle {
+    ignore_changes = [desired_capacity]
   }
 }
 
@@ -150,4 +157,9 @@ data "aws_iam_policy_document" "autoscaling" {
       values   = ["true"]
     }
   }
+}
+
+data "aws_subnet" "subnet" {
+  count = length(var.subnet_ids)
+  id    = var.subnet_ids[count.index]
 }
