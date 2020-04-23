@@ -1,34 +1,3 @@
-data "aws_iam_policy_document" "assume_role_ec2" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    effect  = "Allow"
-
-    principals {
-      identifiers = ["ec2.amazonaws.com"]
-      type        = "Service"
-    }
-  }
-}
-
-data "aws_iam_role" "autoscaling" {
-  name = "AWSServiceRoleForAutoScaling"
-}
-
-resource "aws_launch_configuration" "node" {
-  associate_public_ip_address = false
-  iam_instance_profile        = aws_iam_instance_profile.node.id
-  image_id                    = var.image_id
-  instance_type               = var.instance_type
-  key_name                    = var.key_name
-  name_prefix                 = var.node_name_prefix
-  security_groups             = var.security_group_ids
-  user_data                   = var.user_data
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_autoscaling_group" "node" {
   count = length(var.subnet_ids)
 
@@ -117,6 +86,33 @@ resource "aws_iam_role_policy_attachment" "ecr_read_only" {
   role       = aws_iam_role.node.id
 }
 
+resource "aws_launch_configuration" "node" {
+  associate_public_ip_address = false
+  iam_instance_profile        = aws_iam_instance_profile.node.id
+  image_id                    = var.image_id
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
+  name_prefix                 = var.node_name_prefix
+  security_groups             = var.security_group_ids
+  user_data                   = var.user_data
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+data "aws_iam_policy_document" "assume_role_ec2" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      identifiers = ["ec2.amazonaws.com"]
+      type        = "Service"
+    }
+  }
+}
+
 data "aws_iam_policy_document" "autoscaling" {
   statement {
     sid    = "eksWorkerAutoscalingAll"
@@ -157,6 +153,10 @@ data "aws_iam_policy_document" "autoscaling" {
       values   = ["true"]
     }
   }
+}
+
+data "aws_iam_role" "autoscaling" {
+  name = "AWSServiceRoleForAutoScaling"
 }
 
 data "aws_subnet" "subnet" {
