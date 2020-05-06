@@ -1,3 +1,7 @@
+terraform {
+  required_version = ">= 0.12.0"
+}
+
 resource "aws_autoscaling_group" "node" {
   count = length(var.subnet_ids)
 

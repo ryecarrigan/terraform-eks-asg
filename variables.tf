@@ -6,7 +6,7 @@ variable "cluster_name" {}
 variable "desired_nodes_per_az" {}
 variable "extra_tags" {
   default = {}
-  type    = "map"
+  type    = map(string)
 }
 
 variable "image_id" {}
@@ -28,11 +28,11 @@ variable "minimum_nodes_per_az" {
 
 variable "node_name_prefix" {}
 variable "security_group_ids" {
-  type = "list"
+  type = list(string)
 }
 
 variable "subnet_ids" {
-  type = "list"
+  type = list(string)
 }
 
 variable "user_data" {
