@@ -3,7 +3,7 @@ variable "autoscaler_enabled" {
 }
 
 variable "cluster_name" {}
-variable "desired_nodes_per_az" {}
+variable "desired_nodes" {}
 variable "extra_tags" {
   default = {}
   type    = map(string)
@@ -14,15 +14,20 @@ variable "instance_type" {
   default = "m5.xlarge"
 }
 
+variable "instance_types" {
+  default = ["m5a.large", "m5.large"]
+  type    = list(string)
+}
+
 variable "key_name" {
   default = ""
 }
 
-variable "maximum_nodes_per_az" {
+variable "maximum_nodes" {
   default = 8
 }
 
-variable "minimum_nodes_per_az" {
+variable "minimum_nodes" {
   default = 0
 }
 

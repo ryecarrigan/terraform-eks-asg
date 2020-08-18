@@ -3,16 +3,32 @@ terraform {
 }
 
 resource "aws_autoscaling_group" "node" {
-  count = length(var.subnet_ids)
-
-  availability_zones      = [data.aws_subnet.subnet[count.index].availability_zone]
-  desired_capacity        = var.desired_nodes_per_az
-  launch_configuration    = aws_launch_configuration.node.id
-  max_size                = var.maximum_nodes_per_az
-  min_size                = var.minimum_nodes_per_az
+  desired_capacity        = var.desired_nodes
+  max_size                = var.maximum_nodes
+  min_size                = var.minimum_nodes
   name_prefix             = var.node_name_prefix
   service_linked_role_arn = data.aws_iam_role.autoscaling.arn
-  vpc_zone_identifier     = [data.aws_subnet.subnet[count.index].id]
+  vpc_zone_identifier     = var.subnet_ids
+
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_percentage_above_base_capacity = 0
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.node.id
+      }
+
+      dynamic "override" {
+        for_each = var.instance_types
+        content {
+          instance_type     = override.value
+          weighted_capacity = index(var.instance_types, override.value) + 1
+        }
+      }
+    }
+  }
 
   tag {
     key                 = "Name"
@@ -86,18 +102,30 @@ resource "aws_iam_role_policy_attachment" "eks_autoscaling" {
   role       = aws_iam_role.node.id
 }
 
-resource "aws_launch_configuration" "node" {
-  associate_public_ip_address = false
-  iam_instance_profile        = aws_iam_instance_profile.node.id
-  image_id                    = var.image_id
-  instance_type               = var.instance_type
-  key_name                    = var.key_name
-  name_prefix                 = var.node_name_prefix
-  security_groups             = var.security_group_ids
-  user_data                   = var.user_data
+resource "aws_launch_template" "node" {
+  image_id                             = var.image_id
+  instance_type                        = var.instance_type
+  key_name                             = var.key_name
+  instance_initiated_shutdown_behavior = "terminate"
+  name_prefix                          = var.node_name_prefix
+  user_data                            = base64encode(var.user_data)
+  vpc_security_group_ids               = var.security_group_ids
 
-  lifecycle {
-    create_before_destroy = true
+  iam_instance_profile {
+    name = aws_iam_instance_profile.node.name
+  }
+
+  instance_market_options {
+    market_type = "spot"
+  }
+
+  monitoring {
+    enabled = true
+  }
+
+  network_interfaces {
+    associate_public_ip_address = false
+    delete_on_termination       = true
   }
 }
 
