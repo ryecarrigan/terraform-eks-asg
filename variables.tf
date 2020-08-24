@@ -1,22 +1,23 @@
 variable "autoscaler_enabled" {
-  default = "false"
+  default = false
+  type    = bool
 }
 
 variable "cluster_name" {}
-variable "desired_nodes" {}
+variable "desired_nodes" {
+  default = 0
+  type    = number
+}
+
 variable "extra_tags" {
   default = {}
   type    = map(string)
 }
 
 variable "image_id" {}
-variable "instance_type" {
-  default = "m5.xlarge"
-}
 
 variable "instance_types" {
-  default = ["m5a.large", "m5.large"]
-  type    = list(string)
+  type = list(string)
 }
 
 variable "key_name" {
@@ -25,10 +26,12 @@ variable "key_name" {
 
 variable "maximum_nodes" {
   default = 8
+  type    = number
 }
 
 variable "minimum_nodes" {
   default = 0
+  type    = number
 }
 
 variable "node_name_prefix" {}

@@ -3,12 +3,15 @@ terraform {
 }
 
 resource "aws_autoscaling_group" "node" {
+  count = length(var.subnet_ids)
+
+  availability_zones      = slice(data.aws_subnet.subnet.*.availability_zone, count.index, count.index + 1)
   desired_capacity        = var.desired_nodes
   max_size                = var.maximum_nodes
   min_size                = var.minimum_nodes
-  name_prefix             = var.node_name_prefix
+  name                    = "${var.node_name_prefix}-${element(data.aws_subnet.subnet.*.availability_zone, count.index)}"
   service_linked_role_arn = data.aws_iam_role.autoscaling.arn
-  vpc_zone_identifier     = var.subnet_ids
+  vpc_zone_identifier     = slice(data.aws_subnet.subnet.*.id, count.index, count.index + 1)
 
   mixed_instances_policy {
     instances_distribution {
@@ -18,6 +21,7 @@ resource "aws_autoscaling_group" "node" {
     launch_template {
       launch_template_specification {
         launch_template_id = aws_launch_template.node.id
+        version            = "$Latest"
       }
 
       dynamic "override" {
@@ -104,10 +108,10 @@ resource "aws_iam_role_policy_attachment" "eks_autoscaling" {
 
 resource "aws_launch_template" "node" {
   image_id                             = var.image_id
-  instance_type                        = var.instance_type
+  instance_type                        = var.instance_types[0]
   key_name                             = var.key_name
   instance_initiated_shutdown_behavior = "terminate"
-  name_prefix                          = var.node_name_prefix
+  name                                 = var.node_name_prefix
   user_data                            = base64encode(var.user_data)
   vpc_security_group_ids               = var.security_group_ids
 
@@ -115,17 +119,8 @@ resource "aws_launch_template" "node" {
     name = aws_iam_instance_profile.node.name
   }
 
-  instance_market_options {
-    market_type = "spot"
-  }
-
   monitoring {
     enabled = true
-  }
-
-  network_interfaces {
-    associate_public_ip_address = false
-    delete_on_termination       = true
   }
 }
 
