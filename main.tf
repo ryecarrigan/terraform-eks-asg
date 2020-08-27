@@ -28,7 +28,7 @@ resource "aws_autoscaling_group" "node" {
         for_each = var.instance_types
         content {
           instance_type     = override.value
-          weighted_capacity = index(var.instance_types, override.value) + 1
+          weighted_capacity = 1
         }
       }
     }
